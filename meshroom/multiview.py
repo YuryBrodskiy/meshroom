@@ -1,22 +1,30 @@
-# Multiview pipeline version
-__version__ = "1.0"
-
 import os
 import fnmatch
 import re
+import json
 
 from meshroom.core.graph import Graph, GraphModification
+# Multiview pipeline version
+__version__ = "1.0"
 
 
-def findFiles(folder, patterns):
+def findFiles(data_source, patterns):
     rules = [re.compile(fnmatch.translate(pattern), re.IGNORECASE) for pattern in patterns]
     outFiles = []
-    for name in os.listdir(folder):
-        for rule in rules:
-            if rule.match(name):
-                filepath = os.path.join(folder, name)
-                outFiles.append(filepath)
-                break
+    if data_source.find(".json") == -1:
+        folder = data_source
+        for name in os.listdir(folder):
+            for rule in rules:
+                if rule.match(name):
+                    filepath = os.path.join(folder, name)
+                    outFiles.append(filepath)
+                    break
+    else:
+        json_file = data_source
+        with open(json_file) as f:
+            data = json.load(f)
+            for item in data:
+                outFiles.append(item["TexturePath"])
     return outFiles
 
 
@@ -47,9 +55,13 @@ def photogrammetry(inputFolder='', inputImages=(), inputViewpoints=(), output=''
 
     if output:
         texturing = mvsNodes[-1]
-        graph.addNewNode('Publish', output=output, inputFiles=[texturing.outputMesh,
-                                                               texturing.outputMaterial,
-                                                               texturing.outputTextures])
+        sfm = sfmNodes[-1]
+        graph.addNewNode('Publish', output=output, inputFiles=[
+            sfm.outputViewsAndPoses,
+            texturing.outputMesh,
+            texturing.outputXYZ,
+            texturing.outputMaterial,
+            texturing.outputTextures])
     return graph
 
 
@@ -132,12 +144,13 @@ def mvsPipeline(graph, sfm=None):
                                depthMapFolder=depthMapFilter.depthMapFolder,
                                depthMapFilterFolder=depthMapFilter.output,
                                ini=depthMapFilter.ini)
-    meshFiltering = graph.addNewNode('MeshFiltering',
-                               input=meshing.output)
+    #
+    # meshFiltering = graph.addNewNode('MeshFiltering',
+    #                           input=meshing.output)
     texturing = graph.addNewNode('Texturing',
                                  ini=meshing.ini,
                                  inputDenseReconstruction=meshing.outputDenseReconstruction,
-                                 inputMesh=meshFiltering.output)
+                                 inputMesh=meshing.output)
 
     return [
         prepareDenseScene,
@@ -145,7 +158,7 @@ def mvsPipeline(graph, sfm=None):
         depthMap,
         depthMapFilter,
         meshing,
-        meshFiltering,
+        # meshFiltering,
         texturing
     ]
 

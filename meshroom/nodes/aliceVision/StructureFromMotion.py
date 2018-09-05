@@ -200,7 +200,7 @@ class StructureFromMotion(desc.CommandLineNode):
             name='output',
             label='Output SfMData File',
             description='Path to the output sfmdata file',
-            value=desc.Node.internalFolder + 'sfm.abc',
+            value=desc.Node.internalFolder + 'sfm.json',
             uid=[],
         ),
         desc.File(
@@ -241,3 +241,5 @@ class StructureFromMotion(desc.CommandLineNode):
             poses[pose['poseId']] = pose['pose']
 
         return views, poses
+
+  

@@ -137,7 +137,7 @@ choiceValues1_re = re.compile('\* (?P<value>\w+):')
 choiceValues2_re = re.compile('\((?P<value>.+?)\)')
 choiceValues3_re = re.compile('\{(?P<value>.+?)\}')
 
-cmdLineArgs = args_re.findall(inputCmdLineDoc.decode('UTF-8'))
+cmdLineArgs = args_re.findall(inputCmdLineDoc)
 
 print('='*80)
 pprint(cmdLineArgs)

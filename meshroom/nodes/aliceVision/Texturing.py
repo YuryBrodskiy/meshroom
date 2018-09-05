@@ -158,6 +158,13 @@ class Texturing(desc.CommandLineNode):
             uid=[],
             group='',
             ),
+		desc.File( name='outputXYZ',
+            label='Output PointCloud',
+            description='Folder for output point cloud: XYZ, colored points.',
+            value=desc.Node.internalFolder + 'coloredPCD.XYZ',
+            uid=[],
+            group='',
+            ),
         desc.File(
             name='outputMaterial',
             label='Output Material',

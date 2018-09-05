@@ -280,6 +280,26 @@ class DynamicNodeSize(object):
         if isinstance(param.desc, ListAttribute):
             return len(param)
         return 1
+import os
+import json
+class NodeSizeFromJson(object):
+    """
+    DynamicNodeSize expresses a dependency to an input attribute to define
+    the size of a Node in terms of individual tasks for parallelization.
+    If the attribute is a link to another node, Node's size will be the same as this connected node.
+    If the attribute is a ListAttribute, Node's size will be the size of this list.
+    """
+    def __init__(self, param):
+        self._param = param
+
+    def computeSize(self, node):
+        reportFile = node.attribute(self._param)
+        if not os.path.exists(reportFile.value):
+            return 1
+        with open(reportFile.value) as jsonFile:
+            report = json.load(jsonFile)
+        return len(report["views"])
+
 
 
 class MultiDynamicNodeSize(object):

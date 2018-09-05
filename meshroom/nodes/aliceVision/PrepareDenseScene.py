@@ -5,8 +5,8 @@ from meshroom.core import desc
 
 class PrepareDenseScene(desc.CommandLineNode):
     commandLine = 'aliceVision_prepareDenseScene {allParams}'
-    size = desc.DynamicNodeSize('input')
-
+    #size = desc.DynamicNodeSize('input')
+    size = desc.NodeSizeFromJson('input')
     inputs = [
         desc.File(
             name='input',
@@ -44,3 +44,8 @@ class PrepareDenseScene(desc.CommandLineNode):
             uid=[],
         )
     ]
+
+    #def buildCommandLine(self, chunk):
+    #    print(type(chunk))
+    #    raise TypeError("ups")
+    #    return super(PrepareDenseScene,self).buildCommandLine(chunk)

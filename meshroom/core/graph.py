@@ -1111,6 +1111,7 @@ def executeGraph(graph, toNodes=None, forceCompute=False, forceStatus=False):
         node.beginSequence(forceCompute)
 
     for n, node in enumerate(nodes):
+        graph.updateInternals(force=True)
         try:
             multiChunks = len(node.chunks) > 1
             for c, chunk in enumerate(node.chunks):

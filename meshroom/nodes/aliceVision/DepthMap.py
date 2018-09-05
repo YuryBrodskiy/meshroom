@@ -7,7 +7,7 @@ class DepthMap(desc.CommandLineNode):
     commandLine = 'aliceVision_depthMapEstimation {allParams}'
     gpu = desc.Level.INTENSIVE
     size = desc.DynamicNodeSize('ini')
-    parallelization = desc.Parallelization(blockSize=3)
+    parallelization = desc.Parallelization(blockSize=6)
     commandLineRange = '--rangeStart {rangeStart} --rangeSize {rangeBlockSize}'
 
     inputs = [
@@ -150,3 +150,33 @@ class DepthMap(desc.CommandLineNode):
             uid=[],
         ),
     ]
+    ]
+
+    def processChunk(self, chunk):
+        try:
+            with open(chunk.logFile, 'w') as logF:
+                cmd = self.buildCommandLine(chunk)
+                chunk.status.commandLine = cmd
+                chunk.saveStatusFile()
+                print(' - commandLine: {}'.format(cmd))
+                print(' - logFile: {}'.format(chunk.logFile))
+                chunk.subprocess = psutil.Popen(cmd, stdout=logF, stderr=logF, shell=True)
+
+                # store process static info into the status file
+                # chunk.status.env = node.proc.environ()
+                # chunk.status.createTime = node.proc.create_time()
+
+                chunk.statThread.proc = chunk.subprocess
+                stdout, stderr = chunk.subprocess.communicate()
+                chunk.subprocess.wait()
+
+                chunk.status.returnCode = chunk.subprocess.returncode
+
+            if chunk.subprocess.returncode != 0:
+                with open(chunk.logFile, 'r') as logF:
+                    logContent = ''.join(logF.readlines())
+                raise RuntimeError('Error on node "{}":\nLog:\n{}'.format(chunk.name, logContent))
+        except:
+            raise
+        finally:
+            chunk.subprocess = None
