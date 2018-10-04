@@ -65,6 +65,38 @@ def photogrammetry(inputFolder='', inputImages=(), inputViewpoints=(), output=''
     return graph
 
 
+def sfm(inputFolder='', inputImages=(), inputViewpoints=(), output=''):
+    """
+    Create a new Graph with a complete photogrammetry pipeline.
+
+    Args:
+        inputFolder (str, optional): folder containing image files
+        inputImages (list of str, optional): list of image file paths
+        inputViewpoints (list of Viewpoint, optional): list of Viewpoints
+        output (str, optional): the path to export reconstructed model to
+
+    Returns:
+        Graph: the created graph
+    """
+    graph = Graph('sfm')
+    with GraphModification(graph):
+        sfmNodes = sfmPipeline(graph)
+        cameraInit = sfmNodes[0]
+        if inputFolder:
+            images = findFiles(inputFolder, ['*.jpg', '*.png'])
+            cameraInit.viewpoints.extend([{'path': image} for image in images])
+        if inputImages:
+            cameraInit.viewpoints.extend([{'path': image} for image in inputImages])
+        if inputViewpoints:
+            cameraInit.viewpoints.extend(inputViewpoints)
+
+    if output:
+        sfm = sfmNodes[-1]
+        graph.addNewNode('Publish', output=output, inputFiles=[sfm.outputViewsAndPoses])
+    return graph
+
+
+
 def photogrammetryPipeline(graph):
     """
     Instantiate a complete photogrammetry pipeline inside 'graph'.
@@ -82,6 +114,7 @@ def photogrammetryPipeline(graph):
     graph.header.update({'pipelineVersion': __version__})
 
     return sfmNodes, mvsNodes
+
 
 
 def sfmPipeline(graph):
